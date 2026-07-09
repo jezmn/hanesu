@@ -1,0 +1,40 @@
+{
+  "name": "create-hanesu",
+  "version": "1.0.0",
+  "description": "SDD workflow initializer for AI coding agents",
+  "author": "Hanesu",
+  "homepage": "https://github.com/jezmn/hanesu#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jezmn/hanesu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jezmn/hanesu/issues"
+  },
+  "license": "MIT",
+  "bin": {
+    "create-hanesu": "./bin/create-hanesu.js"
+  },
+  "scripts": {
+    "check": "node --check bin/create-hanesu.js",
+    "pack:dry-run": "npm pack --dry-run --cache ./.npm-cache",
+    "test": "node test/cli.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "template",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "sdd",
+    "spec-driven-development",
+    "tdd",
+    "ai-agents",
+    "coding-agents",
+    "scaffolding"
+  ]
+}

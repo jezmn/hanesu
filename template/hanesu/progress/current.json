@@ -1,0 +1,11 @@
+{
+  "id": null,
+  "type": null,
+  "phase": null,
+  "status": null,
+  "attempt": 1,
+  "gate": {
+    "type": "none",
+    "reason": "none"
+  }
+}
