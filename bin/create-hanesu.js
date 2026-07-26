@@ -175,7 +175,6 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const hanesuDest = path.join(options.target, '.hanesu');
-  const legacyDest = path.join(options.target, '.harness');
 
   console.log('Hanesu - SDD Workflow Initializer\n');
   console.log(`Target: ${options.target}`);
@@ -185,14 +184,7 @@ async function main(argv = process.argv.slice(2)) {
   const mode = options.update ? 'update' : 'init';
 
   console.log(`Setting up .hanesu/ ...`);
-  const hasHanesu = fs.existsSync(hanesuDest);
-  const hasLegacy = fs.existsSync(legacyDest);
-  const migratingLegacy = !hasHanesu && hasLegacy;
-  const activeDest = options.dryRun && migratingLegacy ? legacyDest : hanesuDest;
-  if (migratingLegacy) {
-    if (!options.dryRun) fs.renameSync(legacyDest, hanesuDest);
-    console.log(`  ${options.dryRun ? 'Would migrate' : 'Migrated'} legacy .harness/ to .hanesu/`);
-  }
+  const activeDest = hanesuDest;
   const exists = fs.existsSync(activeDest);
   if (mode === 'init') {
     if (exists) {

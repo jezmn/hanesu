@@ -65,24 +65,9 @@ async function testUpdateIsIdempotent() {
   assert.equal(countHanesuBlocks(agents), 1);
 }
 
-async function testDryRunLegacyMigrationCountsExistingFiles() {
-  const dir = makeTempDir();
-  const legacyDir = path.join(dir, '.harness');
-  fs.mkdirSync(legacyDir, { recursive: true });
-  fs.writeFileSync(path.join(legacyDir, 'workflow.md'), '# custom workflow\n');
-
-  const output = await run(['--target', dir, '--dry-run']);
-  const templateFileCount = countFiles(path.join(__dirname, '..', 'template', 'hanesu'));
-
-  assert.match(output, /Would migrate legacy \.harness\/ to \.hanesu\//);
-  assert.equal(output.includes(`${templateFileCount - 1} file(s) would be created`), true);
-  assert.equal(fs.existsSync(path.join(dir, '.harness')), true);
-  assert.equal(fs.existsSync(path.join(dir, '.hanesu')), false);
-}
 async function runAll() {
   await testInitCreatesWorkspace();
   await testUpdateIsIdempotent();
-  await testDryRunLegacyMigrationCountsExistingFiles();
   console.log('cli tests passed');
 }
 
