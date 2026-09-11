@@ -12,10 +12,6 @@ const UPDATE_SAFE = [
   'workflow.md',
 ];
 
-function readTemplateAgentsMd() {
-  return fs.readFileSync(path.join(ROOT, 'template', 'AGENTS.md'), 'utf-8').trimEnd() + '\n';
-}
-
 function usage() {
   return [
     'Hanesu - SDD workflow initializer for AI coding agents',
@@ -27,7 +23,7 @@ function usage() {
     '  --target <dir>  Initialize Hanesu in a target directory (default: current directory)',
     '  --dry-run       Show what would be created without writing files',
     '  --update        Update existing .hanesu/ (overwrites roles/ and workflow.md;',
-    '                  preserves config.md, prompts/, features/, progress/, feature.json)',
+    '                  preserves config.md, prompts/, features/, specs/, progress/, feature.json)',
     '  --help          Show this help message',
     '  --version       Show package version',
   ].join('\n');
@@ -118,51 +114,6 @@ function updateTemplateOwned(srcDir, destDir, dryRun) {
   return count;
 }
 
-function upsertBlock(content, block) {
-  const start = '<!-- hanesu:start -->';
-  const end = '<!-- hanesu:end -->';
-  const si = content.indexOf(start);
-  const ei = content.indexOf(end, si + 1);
-  if (si !== -1 && ei !== -1) {
-    return content.slice(0, si) + block + content.slice(ei + end.length);
-  }
-  return content.trimEnd() + '\n\n' + block + '\n';
-}
-
-function ask(prompt) {
-  const { createInterface } = require('readline');
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  return new Promise(r => rl.question(prompt, a => { rl.close(); r(a.trim()); }));
-}
-
-async function handleAgentsMd(targetDir, dryRun) {
-  const dest = path.join(targetDir, 'AGENTS.md');
-  const block = readTemplateAgentsMd();
-  if (!fs.existsSync(dest)) {
-    if (!dryRun) fs.writeFileSync(dest, block);
-    console.log(`${dryRun ? 'Would create' : 'Created'} AGENTS.md`);
-    return;
-  }
-  if (dryRun) {
-    console.log('Would prompt to update AGENTS.md');
-    return;
-  }
-  console.log('\nAGENTS.md already exists.');
-  console.log('  [1] Append/update Hanesu section');
-  console.log('  [2] Skip');
-  console.log('  [3] Overwrite entire file');
-  const ans = await ask('  Choose [1/2/3]: ');
-  if (ans === '1') {
-    fs.writeFileSync(dest, upsertBlock(fs.readFileSync(dest, 'utf-8'), block));
-    console.log('Updated AGENTS.md');
-  } else if (ans === '3') {
-    fs.writeFileSync(dest, block);
-    console.log('Overwrote AGENTS.md');
-  } else {
-    console.log('Skipped AGENTS.md');
-  }
-}
-
 async function main(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (options.help) {
@@ -188,8 +139,7 @@ async function main(argv = process.argv.slice(2)) {
   const exists = fs.existsSync(activeDest);
   if (mode === 'init') {
     if (exists) {
-      const status = options.dryRun && migratingLegacy ? '.hanesu/ would exist after migration' : '.hanesu/ exists';
-      console.log(`  ${status} — adding missing files only`);
+      console.log('  .hanesu/ exists — adding missing files only');
     }
     const added = copyMissing(TEMPLATE_HANESU, activeDest, options.dryRun);
     console.log(`  ${added} file(s) ${options.dryRun ? 'would be created' : 'created'}, existing files preserved`);
@@ -222,20 +172,6 @@ async function main(argv = process.argv.slice(2)) {
     fs.mkdirSync(diffDir, { recursive: true });
   }
 
-  if (options.update) {
-    const block = readTemplateAgentsMd();
-    const agentsDest = path.join(options.target, 'AGENTS.md');
-    if (fs.existsSync(agentsDest)) {
-      if (!options.dryRun) fs.writeFileSync(agentsDest, upsertBlock(fs.readFileSync(agentsDest, 'utf-8'), block));
-      console.log(`  ${options.dryRun ? 'Would update' : 'Updated'} AGENTS.md (hanesu block)`);
-    } else {
-      if (!options.dryRun) fs.writeFileSync(agentsDest, block);
-      console.log(`  ${options.dryRun ? 'Would create' : 'Created'} AGENTS.md`);
-    }
-  } else {
-    await handleAgentsMd(options.target, options.dryRun);
-  }
-
   console.log(`\nHanesu ${options.dryRun ? 'dry run complete' : 'ready'}.`);
 }
 
@@ -246,5 +182,4 @@ if (require.main === module) {
 module.exports = {
   main,
   parseArgs,
-  upsertBlock,
 };

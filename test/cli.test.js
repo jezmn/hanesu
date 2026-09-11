@@ -9,10 +9,6 @@ function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'hanesu-cli-'));
 }
 
-function countHanesuBlocks(text) {
-  return (text.match(/<!-- hanesu:start -->/g) || []).length;
-}
-
 async function run(args) {
   const originalLog = console.log;
   const logs = [];
@@ -27,13 +23,19 @@ async function run(args) {
   }
 }
 
-function countFiles(dir) {
-  let count = 0;
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fp = path.join(dir, entry.name);
-    count += entry.isDirectory() ? countFiles(fp) : 1;
+function assertFullTemplateCopied(dir) {
+  const template = path.join(__dirname, '..', 'template', 'hanesu');
+  function walk(src, rel) {
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+      const childRel = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        walk(path.join(src, entry.name), childRel);
+      } else {
+        assert.equal(fs.existsSync(path.join(dir, '.hanesu', childRel)), true, `template file .hanesu/${childRel} copied`);
+      }
+    }
   }
-  return count;
+  walk(template, '');
 }
 
 async function testInitCreatesWorkspace() {
@@ -41,33 +43,42 @@ async function testInitCreatesWorkspace() {
 
   await run(['--target', dir]);
 
-  assert.equal(fs.existsSync(path.join(dir, '.hanesu', 'workflow.md')), true);
+  assertFullTemplateCopied(dir);
   assert.equal(fs.existsSync(path.join(dir, '.hanesu', 'features', '.gitkeep')), true);
-  assert.equal(fs.existsSync(path.join(dir, '.hanesu', 'progress', 'checkpoints', '.gitkeep')), true);
-
-  const agents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
-  assert.equal(countHanesuBlocks(agents), 1);
-  assert.match(agents, /<!-- hanesu:end -->/);
 }
 
 async function testUpdateIsIdempotent() {
   const dir = makeTempDir();
+  const rolePath = path.join(dir, '.hanesu', 'roles', 'craftsman.md');
 
   await run(['--target', dir]);
-  const agentsPath = path.join(dir, 'AGENTS.md');
-  fs.writeFileSync(agentsPath, `# Project Notes\n\n${fs.readFileSync(agentsPath, 'utf8')}`);
+  const original = fs.readFileSync(rolePath, 'utf8');
+  fs.writeFileSync(rolePath, `${original}\n\n# Draft note\n`);
 
   await run(['--target', dir, '--update']);
   await run(['--target', dir, '--update']);
 
-  const agents = fs.readFileSync(agentsPath, 'utf8');
-  assert.match(agents, /# Project Notes/);
-  assert.equal(countHanesuBlocks(agents), 1);
+  assert.equal(fs.readFileSync(rolePath, 'utf8'), original, 'role restored to template on update');
+}
+
+async function testUpdatePreservesUserData() {
+  const dir = makeTempDir();
+
+  await run(['--target', dir]);
+  const cfgPath = path.join(dir, '.hanesu', 'config.md');
+  fs.writeFileSync(cfgPath, `${fs.readFileSync(cfgPath, 'utf8')}# Custom\n`);
+  fs.writeFileSync(path.join(dir, '.hanesu', 'progress', 'history.md'), '# My history\n');
+
+  await run(['--target', dir, '--update']);
+
+  assert.match(fs.readFileSync(cfgPath, 'utf8'), /# Custom/, 'config.md preserved');
+  assert.equal(fs.readFileSync(path.join(dir, '.hanesu', 'progress', 'history.md'), 'utf8'), '# My history\n', 'progress preserved');
 }
 
 async function runAll() {
   await testInitCreatesWorkspace();
   await testUpdateIsIdempotent();
+  await testUpdatePreservesUserData();
   console.log('cli tests passed');
 }
 

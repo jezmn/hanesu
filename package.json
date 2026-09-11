@@ -1,6 +1,6 @@
 {
   "name": "create-hanesu",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Experimental workflow layer for AI coding agents",
   "author": "Hanesu",
   "homepage": "https://github.com/jezmn/hanesu#readme",

@@ -32,7 +32,7 @@ The workflow borrows from Spec-Driven Development and Test-Driven Development: s
 ```bash
 # In your project directory
 npx create-hanesu
-# Creates .hanesu/ + AGENTS.md
+# Creates .hanesu/
 npx create-hanesu --update
 # Updates an existing .hanesu/ from the latest template
 ```
@@ -47,13 +47,13 @@ After init, customize these files:
 | `.hanesu/feature.json` | your feature backlog (feature/bugfix/patch/refactor/audit) |
 | `.hanesu/prompts/<id>.prompt` | task description, logs, error output, links |
 
-Project stack and architecture go in `AGENTS.md` (below the Hanesu header) or in a separate `ARCHITECTURE.md` at root.
+Project stack and architecture go in a separate `ARCHITECTURE.md` at root.
 
 ## How It Works
 
 One task at a time. Pipeline selected by type.
 
-The agent starts from `AGENTS.md`, reads the compact workflow definition, checks
+The agent starts from `.hanesu/workflow.md`, reads the compact workflow definition, checks
 the current task in `.hanesu/feature.json`, then runs the first phase:
 `context-scout`.
 
@@ -150,7 +150,7 @@ Use the prompt for logs, acceptance notes, error output, links, and constraints.
 Implement f1 using Hanesu.
 ```
 
-The orchestrator reads `AGENTS.md`, `.hanesu/workflow.md`, `.hanesu/feature.json`,
+The orchestrator reads `.hanesu/workflow.md`, `.hanesu/feature.json`,
 and the matching `.hanesu/prompts/<id>.prompt`.
 It selects the pipeline by type from workflow.md and executes.
 

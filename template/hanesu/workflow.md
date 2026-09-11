@@ -1,5 +1,12 @@
 # Hanesu Workflow
 
+Act as the **orchestrator** when the user asks you to run a Hanesu task (e.g. "implement f1 using hanesu"):
+
+1. Read `roles/orchestrator.md` and follow it.
+2. Read `feature.json` — first task with `"status": "pending"` in list order.
+3. Read `progress/current.json` — resume interrupted work if active.
+4. Run the matching pipeline below from its first phase (normally `search`).
+
 One task at a time. Pipeline selected by type in `feature.json`.
 State on disk via `progress/current.json`. Roles run as sub-agents when supported, sequentially otherwise.
 This file is the canonical pipeline map: every phase lists its owning role explicitly.
